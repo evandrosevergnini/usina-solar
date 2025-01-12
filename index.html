@@ -6,119 +6,180 @@
     <title>Rateio Usina Solar</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            margin: 0;
+        }
+        .container {
+            margin: 20px auto;
+            max-width: 800px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .config {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input {
+            padding: 8px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-top: 20px;
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 10px;
             text-align: center;
         }
         th {
-            background-color: #f4f4f4;
+            background-color: #4CAF50;
+            color: white;
         }
-        .config {
-            margin-bottom: 20px;
+        td {
+            background-color: #f9f9f9;
+        }
+        tr:nth-child(even) td {
+            background-color: #f1f1f1;
+        }
+        .total {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
-    <h1>Rateio Usina Solar</h1>
+    <header>
+        <h1>Rateio Usina Solar</h1>
+    </header>
 
-    <div class="config">
-        <label for="costPerKwh">Custo por kWh (R$):</label>
-        <input type="number" id="costPerKwh" value="0.86" step="0.01">
-        <br><br>
-        <label for="financingCost">Financiamento Mensal (R$):</label>
-        <input type="number" id="financingCost" value="888">
-        <br><br>
-        <label for="numUnitsAdditional">Número de Unidades com Custo Adicional:</label>
-        <input type="number" id="numUnitsAdditional" value="0" step="1" min="0" max="4">
-        <br><br>
-        <label for="totalAdditionalCost">Custo Adicional Total (R$):</label>
-        <span id="totalAdditionalCost">0.00</span>
+    <div class="container">
+        <div class="config">
+            <label for="costPerKwh">Custo por kWh (R$):</label>
+            <input type="number" id="costPerKwh" value="0.86" step="0.01">
+
+            <label for="financingCost">Financiamento Mensal (R$):</label>
+            <input type="number" id="financingCost" value="888">
+
+            <label for="numUnitsAdditional">Número de Unidades com Custo Adicional:</label>
+            <input type="number" id="numUnitsAdditional" value="0" step="1" min="0" max="4">
+
+            <label for="totalAdditionalCost">Custo Adicional Total (R$):</label>
+            <span id="totalAdditionalCost">0.00</span>
+        </div>
+
+        <table id="rateioTable">
+            <thead>
+                <tr>
+                    <th>Mês</th>
+                    <th>U1 Consumo Real (kWh)</th>
+                    <th>U2 Consumo Real (kWh)</th>
+                    <th>U3 Consumo Real (kWh)</th>
+                    <th>U4 Consumo Real (kWh)</th>
+                    <th>U1 Total (R$)</th>
+                    <th>U2 Total (R$)</th>
+                    <th>U3 Total (R$)</th>
+                    <th>U4 Total (R$)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <script>
+                    const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+                    function createRow(mes) {
+                        return `
+                            <tr>
+                                <td>${mes}</td>
+                                <td><input type="number" class="consumo" data-unidade="U1" value="0"></td>
+                                <td><input type="number" class="consumo" data-unidade="U2" value="0"></td>
+                                <td><input type="number" class="consumo" data-unidade="U3" value="0"></td>
+                                <td><input type="number" class="consumo" data-unidade="U4" value="0"></td>
+                                <td class="total" data-unidade="U1">0.00</td>
+                                <td class="total" data-unidade="U2">0.00</td>
+                                <td class="total" data-unidade="U3">0.00</td>
+                                <td class="total" data-unidade="U4">0.00</td>
+                            </tr>`;
+                    }
+
+                    const tbody = document.querySelector("#rateioTable tbody");
+                    meses.forEach(mes => tbody.innerHTML += createRow(mes));
+
+                    function calculate() {
+                        const costPerKwh = parseFloat(document.getElementById("costPerKwh").value);
+                        const financingCost = parseFloat(document.getElementById("financingCost").value);
+                        const numUnitsAdditional = parseInt(document.getElementById("numUnitsAdditional").value) || 0;
+
+                        const additionalCostPerUnit = 90 * costPerKwh;
+                        const totalAdditionalCost = numUnitsAdditional * additionalCostPerUnit;
+
+                        document.getElementById("totalAdditionalCost").innerText = totalAdditionalCost.toFixed(2);
+
+                        const rows = tbody.querySelectorAll("tr");
+                        rows.forEach(row => {
+                            const consumos = row.querySelectorAll(".consumo");
+                            const totals = row.querySelectorAll(".total");
+
+                            let totalAdjustedConsumption = 0;
+                            const adjustedConsumptions = [];
+
+                            consumos.forEach(input => {
+                                const consumoReal = parseFloat(input.value) || 0;
+                                adjustedConsumptions.push(consumoReal);
+                                totalAdjustedConsumption += consumoReal;
+                            });
+
+                            adjustedConsumptions.forEach((consumoAjustado, index) => {
+                                const proportion = consumoAjustado / totalAdjustedConsumption;
+                                const adjustedFinancingCost = financingCost - totalAdditionalCost;
+                                const financingShare = proportion * adjustedFinancingCost;
+                                const additionalShare = totalAdditionalCost / 4;
+                                const total = financingShare + additionalShare;
+                                totals[index].innerText = total.toFixed(2);
+                            });
+                        });
+                    }
+
+                    document.body.addEventListener("input", calculate);
+                    calculate();
+                </script>
+            </tbody>
+        </table>
     </div>
 
-    <table id="rateioTable">
-        <thead>
-            <tr>
-                <th>Mês</th>
-                <th>U1 Consumo Real (kWh)</th>
-                <th>U2 Consumo Real (kWh)</th>
-                <th>U3 Consumo Real (kWh)</th>
-                <th>U4 Consumo Real (kWh)</th>
-                <th>U1 Total (R$)</th>
-                <th>U2 Total (R$)</th>
-                <th>U3 Total (R$)</th>
-                <th>U4 Total (R$)</th>
-            </tr>
-        </thead>
-        <tbody>
-            <script>
-                const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-
-                function createRow(mes) {
-                    return `
-                        <tr>
-                            <td>${mes}</td>
-                            <td><input type="number" class="consumo" data-unidade="U1" value="0"></td>
-                            <td><input type="number" class="consumo" data-unidade="U2" value="0"></td>
-                            <td><input type="number" class="consumo" data-unidade="U3" value="0"></td>
-                            <td><input type="number" class="consumo" data-unidade="U4" value="0"></td>
-                            <td class="total" data-unidade="U1">0.00</td>
-                            <td class="total" data-unidade="U2">0.00</td>
-                            <td class="total" data-unidade="U3">0.00</td>
-                            <td class="total" data-unidade="U4">0.00</td>
-                        </tr>`;
-                }
-
-                const tbody = document.querySelector("#rateioTable tbody");
-                meses.forEach(mes => tbody.innerHTML += createRow(mes));
-
-                function calculate() {
-                    const costPerKwh = parseFloat(document.getElementById("costPerKwh").value);
-                    const financingCost = parseFloat(document.getElementById("financingCost").value);
-                    const numUnitsAdditional = parseInt(document.getElementById("numUnitsAdditional").value) || 0;
-
-                    const additionalCostPerUnit = 90 * costPerKwh;
-                    const totalAdditionalCost = numUnitsAdditional * additionalCostPerUnit;
-
-                    document.getElementById("totalAdditionalCost").innerText = totalAdditionalCost.toFixed(2);
-
-                    const rows = tbody.querySelectorAll("tr");
-                    rows.forEach(row => {
-                        const consumos = row.querySelectorAll(".consumo");
-                        const totals = row.querySelectorAll(".total");
-
-                        let totalAdjustedConsumption = 0;
-                        const adjustedConsumptions = [];
-
-                        consumos.forEach(input => {
-                            const consumoReal = parseFloat(input.value) || 0;
-                            adjustedConsumptions.push(consumoReal);
-                            totalAdjustedConsumption += consumoReal;
-                        });
-
-                        adjustedConsumptions.forEach((consumoAjustado, index) => {
-                            const proportion = consumoAjustado / totalAdjustedConsumption;
-                            const adjustedFinancingCost = financingCost - totalAdditionalCost;
-                            const financingShare = proportion * adjustedFinancingCost;
-                            const additionalShare = totalAdditionalCost / 4;
-                            const total = financingShare + additionalShare;
-                            totals[index].innerText = total.toFixed(2);
-                        });
-                    });
-                }
-
-                document.body.addEventListener("input", calculate);
-                calculate();
-            </script>
-        </tbody>
-    </table>
+    <footer>
+        <p>Desenvolvido para simplificar o cálculo de rateio da usina solar.</p>
+    </footer>
 </body>
 </html>
